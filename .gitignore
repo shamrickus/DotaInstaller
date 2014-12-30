@@ -40,6 +40,10 @@ htmlcov/
 nosetests.xml
 coverage.xml
 
+#Data Files
+scripts/*
+sounds/*
+
 # Translations
 *.mo
 *.pot
