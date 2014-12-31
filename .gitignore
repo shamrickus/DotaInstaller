@@ -43,6 +43,7 @@ coverage.xml
 #Data Files
 scripts/*
 sounds/*
+build/*
 
 # Translations
 *.mo

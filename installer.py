@@ -1,4 +1,4 @@
-import Tkinter, os, csv, sys
+import Tkinter, os, csv, sys, shutil, os.path
 from tkFileDialog import askdirectory
 from pygame import mixer
 from Tkinter import *
@@ -8,29 +8,31 @@ dirname = '!'
 settings = [[]]
 dirSet = 0
 active = []
-#pygame.init()
 mixer.init()
 sounda = ''
-
 
 def dialErrMsg(title, content, quitOut):
     tkMessageBox.showinfo(title, content)
     if quitOut:
         top.destroy()
 
-def playSound(name):
+#For if the installer screws up
+if( not os.path.isfile(os.getcwd() + '/settings.txt')):
+    os.chdir(os.getcwd() + '/../')
+
+#For if the shortcut screws up
+if(not os.path.isfile(os.getcwd() + '/settings.txt')):
+    while 1:
+        dialErrMsg('Locate', 'Locate the Dota Sound Modder folder', 0)
+        dirname = askdirectory()
+        os.chdir(dirname)
+        if(os.path.isfile(os.getcwd() + '/settings.txt')):
+            break
+
+def playSound(index):
     global sounda, settings, active
-    i = 0
-    print name
-    for names in settings:
-        if names[0] == name:
-            index = i
-            break;
-        i+= 1
-    print active[index].get()
-    mixer.music.pause()
+    mixer.music.stop()
     if active[index].get() != -1:
-        print os.getcwd() + '\\sounds\\' + settings[active[index].get()][2]
         sounda = mixer.music.load(open(os.getcwd() + '\\sounds\\' + settings[active[index].get()][2],'rb'))
         mixer.music.play()
         
@@ -45,7 +47,8 @@ def getSteamDir():
     if dirname == '':
         dirSet = 0
         return
-    if(not os.path.exists(dirname + "/SteamApps/common/dota 2 beta/dota")):
+    dirname = dirname + "/SteamApps/common/dota 2 beta/dota"
+    if(not os.path.exists(dirname)):
         dirSet = 0
         dialErrMsg("Cannot find Dota 2", "Dota 2 is either not installed or important files are missing. Reinstall/verify game cache", 0)
     else:
@@ -83,20 +86,50 @@ def readFiles():
         i+= 1
 
 def submitForms():
-    global active, dirSet, settings
+    global active, dirSet, settings, dirname
     if dirSet == 0:
         dialErrMsg("No directory set", "Please select your steam directory", 0)
         return
+    #Add display for already existant files
+    string = "Added: "
+    for index in active:
+        if index.get() != -1:
+            if not os.path.isfile(dirname+ '/' + settings[index.get()][1] + settings[index.get()][2]):
+                try:
+                    os.makedirs(settings[index.get()][1])
+                except Exception:
+                    pass
+                shutil.copy(os.getcwd() + '/sounds/' + settings[index.get()][2], dirname + '/' + settings[index.get()][1])
+            string = string + settings[index.get()][2] + ', '
 
-    print active
-    for name in active:
-        print name.get()
+    string = string[:-2]
+    dialErrMsg("Added Sounds", string, 0)
+
+    
+    
+
+def removeForms():
+    global active, dirSet, settings, dirname
+    if dirSet == 0:
+        dialErrMsg("No directory set", "Please select your steam directory", 0)
+        return
+    #Add display for non existant files
+    string = "Removed: "
+    for index in active:
+        if index.get() != -1:
+            if os.path.isfile(dirname + '/' + settings[index.get()][1] + settings[index.get()][2]):
+                os.remove(dirname + '/' + settings[index.get()][1] + settings[index.get()][2])
+            string = string + settings[index.get()][2] + ', '
+
+    string = string[:-2]
+    dialErrMsg("Removed Sounds", string, 0)      
+        
     
 
 top = Tkinter.Tk()
 top.title("Dota 2 Sound Installer")
 readFiles()
-w = 366
+w = 393
 h = 82
 sw = top.winfo_screenwidth()
 sh = top.winfo_screenheight()
@@ -108,17 +141,17 @@ x = (sw - w) / 2
 y = (sh - h) / 2
 top.geometry("%dx%d+%d+%d" % (w, h, x, y))
 
-a = Tkinter.Button(top, width=51, height="2", text="Locate Steam Directory", command = lambda: getSteamDir()).grid(row = 0, columnspan=2, column = 0)
-c = Tkinter.Button(top, width=51, height="2", text="Exit", command = lambda: top.destroy()).grid(row = 2, columnspan=2, column = 0)
-e = Tkinter.Label(top, width=51, height="2", text="Custom Sounds:").grid(row = 2, columnspan=2, column = 0)
+a = Tkinter.Button(top, width=55, height="2", text="Locate Steam Directory", command = lambda: getSteamDir()).grid(row = 0, columnspan=2, column = 0)
+c = Tkinter.Button(top, width=55, height="2", text="Exit", command = lambda: top.destroy()).grid(row = 2, columnspan=2, column = 0)
+e = Tkinter.Label(top, width=55, height="2", text="Custom Sounds:").grid(row = 2, columnspan=2, column = 0)
 i = 0
 for name in settings:
     active[i] = IntVar()
     active[i].set(-1)
-    Tkinter.Checkbutton(top, width=22, height=2, text=name[0], variable=active[i], onvalue=i, offvalue='-1', command =lambda:playSound(name[0])).grid(row = (3 + i/2), column = i%2)
+    Tkinter.Checkbutton(top, width=24, height=2, text=name[0], variable=active[i], onvalue=i, offvalue='-1', command =lambda i=i:playSound(i)).grid(row = (3 + i/2), column = i%2)
     i+= 1
-d = Tkinter.Button(top, width=51, height="2", text="Submit", command = lambda: submitForms()).grid(row= 4 + i/2, columnspan=2, column = 0)
-
+d = Tkinter.Button(top, width=27, height="2", text="Submit", command = lambda: submitForms()).grid(row= 4 + i/2, columnspan=1, column = 0)
+f = Tkinter.Button(top, width=27, height="2", text="Remove", command = lambda: removeForms()).grid(row = 4 + i/2, columnspan=1, column = 1)
 top.mainloop()
 
 
