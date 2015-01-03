@@ -44,6 +44,9 @@ coverage.xml
 scripts/*
 sounds/*
 build/*
+sound/*
+settings.txt
+
 
 # Translations
 *.mo

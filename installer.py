@@ -1,9 +1,14 @@
-import Tkinter, os, csv, sys, shutil, os.path
-from tkFileDialog import askdirectory
-import pygame.mixer
-from PIL import Image
-from Tkinter import *
-import tkMessageBox
+try:
+    import Tkinter, os, csv, sys, shutil, os.path
+    from tkFileDialog import askdirectory
+    import pygame.mixer
+    from PIL import Image
+    from Tkinter import *
+    import tkMessageBox
+except Exception:
+    print "Could not import required files"
+    sys.exit(0)
+    
 
 #Contains the path to the dota folder
 dirname = '!'
@@ -61,9 +66,8 @@ def dialMsg(title, content, quitOut = 0):
 #then ask the user to locate the folder
 if(not os.path.isfile(os.getcwd() + '/settings.txt')):
     while not os.path.isfile(os.getcwd() + '/settings.txt'):
-        dialMsg('Locate', 'Locate the Dota_File_Installer folder you downloaded', 0)
+        dialMsg('Locate', 'Locate the Dota File Installer folder you downloaded', 0)
         curDir = askdirectory()
-        print os.path.isfile(os.getcwd() + '/settings.txt')
         if(curDir != ''):
             os.chdir(curDir)
         else:
@@ -174,44 +178,45 @@ def addFiles():
     i = -1
     for index in active:
         i+= 1
+        if index == -1:
+            continue
         if active[index] != -1:
             passed = 0
             #If the file does not already exist
             if not os.path.isfile(dirname+ '/' + settings[index][1] + settings[index][2]):
                 try:
-                    os.makedirs(settings[index][1])
+                    os.makedirs(dirname + '/' + settings[index][1])
                 except Exception:
                     #The directories already exist or we don't have permission
                     pass
                 try:
                     shutil.copy(os.getcwd() + '/sound/' + settings[index][2], dirname + '/' + settings[index][1])
                     if not settings[index][4] != '':    
-                        string = string + settings[index][2] + ', '
+                        string = string + settings[index][0] + ', '
                         checkbox[i].config(foreground = 'blue')
                     passed = 1
-                #TODO: Display error to user
-                except Exception:
+                except IOError:
                     #Cannot copy file
-                    print "Exception error: %s" % Exception
+                    dialMsg("Error", "Could not copy sound " + settings[index][0])
                     pass
             else:
-                if tkMessageBox.askyesno("Overwrite", "File " + settings[index][2] + " already exists, overwrite?"):
+                if tkMessageBox.askyesno("Overwrite", "File " + settings[index][0] + " already exists, overwrite?"):
                     try:
                         os.remove(dirname + '/' + settings[index][1] + settings[index][2])
                         shutil.copy(os.getcwd() + '/sound/' + settings[index][2], dirname + '/' + settings[index][1])
                         if not settings[index][4] != '':    
-                            string = string + settings[index][2] + ', '
+                            string = string + settings[index][0] + ', '
                             checkbox[i].config(foreground = 'blue')
                         passed = 1
-                    #TODO: Display Error to user
                     except Exception:
                         #Cannot copy file
+                        dialMsg("Error", "Could not overwrite sound " + settings[index][0])
                         pass
             #Copying the script
             if passed and settings[index][4] != '':
                 if not os.path.isfile(dirname + '/' + settings[index][4] + '/' + settings[index][5]):
                     try:
-                        os.makedirs(settings[index][4])
+                        os.makedirs(dirname + '/' + settings[index][4])
                     except Exception:
                         #The directories already exist or we don't have the permission
                         pass
@@ -219,26 +224,25 @@ def addFiles():
                         shutil.copy(os.getcwd() + '/scripts/' + settings[index][5], dirname + '/' + settings[index][4])
                         checkbox[i].config(foreground = 'blue')
                         #Appending string for displaying what was added
-                        string = string + settings[index][2] + ', '
+                        string = string + settings[index][0] + ', '
                         string = string + settings[index][5] + ', '
                         passed = 1
                     #TODO: Display error to user
                     except Exception:
                         #Cannot copy file
-                        print "Exception error: %s" % Exception
+                        dialMsg("Error", "Could not copy script " + settings[index][5])
                         pass
                 else:
                     if tkMessageBox.askyesno("Overwrite", "File " + settings[index][5] + " already exists, overwrite?"):
                         try:
                             os.remove(dirname + '/' + settings[index][4] + settings[index][5])
                             shutil.copy(os.getcwd() + '/scripts/' + settings[index][5], dirname + '/' + settings[index][4])
-                            string = string + settings[index][2] + ', '
+                            string = string + settings[index][0] + ', '
                             string = string + settings[index][5] + ', '
                             checkbox[i].config(foreground = 'blue')
                             passed = 1
-                        #TODO: Display Error to user
                         except Exception:
-                            #Cannot copy file
+                            dialMsg("Error", "Could not overwrite script " + settings[index][5])
                             pass
     if len(string) > 7:
         #Trimming trailing ', '
@@ -256,13 +260,15 @@ def removeFiles():
     for index in active:
         passed = 0
         i+= 1
+        if index == -1:
+            continue
         if active[index] != -1:
             #If the file exists
             if os.path.isfile(dirname + '/' + settings[index][1] + settings[index][2]):
                 try:
                     os.remove(dirname + '/' + settings[index][1] + settings[index][2])
                     if not settings[index][4] != '':
-                        string = string + settings[index][2] + ', '
+                        string = string + settings[index][0] + ', '
                         checkbox[i].config(foreground = 'red')
                     passed = 1
                 #TODO: Display error to user
@@ -273,7 +279,7 @@ def removeFiles():
             if os.path.isfile(dirname + '/' + settings[index][4] + settings[index][5]):
                 try:
                     os.remove(dirname + '/' + settings[index][4] + settings[index][5])
-                    string = string + settings[index][2] + ', '
+                    string = string + settings[index][0] + ', '
                     string = string + settings[index][5] + ', '
                     checkbox[i].config(foreground = 'red')
                 #TODO: Display error to user
@@ -295,8 +301,8 @@ sw = top.winfo_screenwidth()
 sh = top.winfo_screenheight()
 i = 0
 #Increasing window height based on how many checkboxes there are
-while(h < sh - 100 and i < len(settings)):
-    h+= 28
+while(h < sh - 100 and i < len(settings) / 2):
+    h+= 59
     i+= 1
 #centering the screen
 x = (sw - w) / 2
