@@ -17,7 +17,7 @@ dirname = '!'
 #settings[x][1] Destination
 #settings[x][2] File Name
 #settings[x][3] File Type
-#settigns[x][4-6] Repeat index 1-3 for corresponding
+#settigns[x][4-6]/[y-y+6] Repeat index 1-3 for corresponding
 #file such as a script
 settings = [[]]
 #If a correct steam directory has been found
@@ -33,7 +33,7 @@ checkbox = []
 
 #Enabling checkboxes/buttons/slider
 def enableButtons():
-    global checkbox, vol, add, rem, dirSet
+    global checkbox, vol, add, rem, dirSet, allc, unall
     if dirSet:
         i = -1
         for index in checkbox:
@@ -42,10 +42,13 @@ def enableButtons():
         vol.config(state = "normal")
         add.config(state = "normal")
         rem.config(state = "normal")
+        snd.config(state = "normal")
+        allc.config(state = "normal")
+        unall.config(state = "normal")
 
 #Disabling checkboxes/buttons/slider  
 def disableButtons():
-    global checkbox, vol, add, rem, dirSet
+    global checkbox, vol, add, rem, dirSet, allc, unall
     if not dirSet:
         i = -1
         for index in checkbox:
@@ -54,6 +57,9 @@ def disableButtons():
         vol.config(state = "disabled")
         add.config(state = "disabled")
         rem.config(state = "disabled")
+        snd.config(state = "disabled")
+        allc.config(state = "disabled")
+        unall.config(state = "disabled")
         
 
 #Displays a dialog with the given title and content, if quitOut is true, terminate tkinter
@@ -89,6 +95,11 @@ def playSound(index):
     if active[index] != -1:
         sounda = pygame.mixer.music.load(open(os.getcwd() + '\\sound\\' + settings[index][2],'rb'))
         pygame.mixer.music.play()
+
+#Stops all sounds
+def stopSound():
+    global sounda
+    pygame.mixer.music.stop()
 
 #Prompting user for the steam directory location
 def getSteamDir():
@@ -155,17 +166,18 @@ def readFiles():
 def checkExisting():
     global settings, dirname, checkbox
     i = -1
-    for index in settings:
+    for files in settings:
         i+= 1
-        if os.path.isfile(dirname + '/' + settings[i][1] + settings[i][2]):
-            if settings[i][4] != '' and os.path.isfile(dirname + '/' + settings[i][4] + settings[i][5]):
-                checkbox[i].config(foreground = 'blue')
-            elif settings[i][4] == '':
-                checkbox[i].config(foreground = 'blue')
-            else:
+        j = -2
+        while files[j + 3] != '':
+            passed = 1
+            if not os.path.isfile(dirname + '/' + files[j + 3] + files[j + 4]):
+                passed = 0
+            j = j + 3
+            if passed == 0:
                 checkbox[i].config(foreground = 'red')
-        else:
-            checkbox[i].config(foreground = 'red')
+            else:
+                checkbox[i].config(foreground = 'blue')
 
 #TODO: elegently append script/handle mutiple files adding to one scritpt
 #Adding selected files
@@ -178,77 +190,65 @@ def addFiles():
     i = -1
     for index in active:
         i+= 1
+        j = -2
         if index == -1:
             continue
         if active[index] != -1:
-            passed = 0
-            #If the file does not already exist
-            if not os.path.isfile(dirname+ '/' + settings[index][1] + settings[index][2]):
-                try:
-                    os.makedirs(dirname + '/' + settings[index][1])
-                except Exception:
-                    #The directories already exist or we don't have permission
-                    pass
-                try:
-                    shutil.copy(os.getcwd() + '/sound/' + settings[index][2], dirname + '/' + settings[index][1])
-                    if not settings[index][4] != '':    
-                        string = string + settings[index][0] + ', '
-                        checkbox[i].config(foreground = 'blue')
-                    passed = 1
-                except IOError:
-                    #Cannot copy file
-                    dialMsg("Error", "Could not copy sound " + settings[index][0])
-                    pass
-            else:
-                if tkMessageBox.askyesno("Overwrite", "File " + settings[index][0] + " already exists, overwrite?"):
+            passed = 1
+            while settings[index][j + 3] != "":
+                #If the file does not already exist
+                if not os.path.isfile(dirname+ '/' + settings[index][j + 3] + settings[index][j + 4]):
                     try:
-                        os.remove(dirname + '/' + settings[index][1] + settings[index][2])
-                        shutil.copy(os.getcwd() + '/sound/' + settings[index][2], dirname + '/' + settings[index][1])
-                        if not settings[index][4] != '':    
-                            string = string + settings[index][0] + ', '
+                        os.makedirs(dirname + '/' + settings[index][j + 3])
+                    except Exception:
+                        #The directories already exist or we don't have permission
+                        pass
+                    try:
+                        shutil.copy(os.getcwd() + '/' + settings[index][j + 5] + '/' + settings[index][j + 4], dirname + '/' + settings[index][j + 3])
+                        if not settings[index][j + 6] != '' and passed == 1:   
+                            string = string + settings[index][0] + ', ' 
                             checkbox[i].config(foreground = 'blue')
-                        passed = 1
-                    except Exception:
+                    except IOError:
                         #Cannot copy file
-                        dialMsg("Error", "Could not overwrite sound " + settings[index][0])
-                        pass
-            #Copying the script
-            if passed and settings[index][4] != '':
-                if not os.path.isfile(dirname + '/' + settings[index][4] + '/' + settings[index][5]):
-                    try:
-                        os.makedirs(dirname + '/' + settings[index][4])
-                    except Exception:
-                        #The directories already exist or we don't have the permission
-                        pass
-                    try:
-                        shutil.copy(os.getcwd() + '/scripts/' + settings[index][5], dirname + '/' + settings[index][4])
-                        checkbox[i].config(foreground = 'blue')
-                        #Appending string for displaying what was added
-                        string = string + settings[index][0] + ', '
-                        string = string + settings[index][5] + ', '
-                        passed = 1
-                    #TODO: Display error to user
-                    except Exception:
-                        #Cannot copy file
-                        dialMsg("Error", "Could not copy script " + settings[index][5])
-                        pass
+                        passed = 0
+                        dialMsg("Error", "Could not copy file " + settings[index][j + 3])
+                        break
                 else:
-                    if tkMessageBox.askyesno("Overwrite", "File " + settings[index][5] + " already exists, overwrite?"):
+                    if j == -2:
+                        answer = tkMessageBox.askyesno("Overwrite", "File " + settings[index][j + 2] + " already exists, overwrite?")
+                    else:
+                        answer = tkMessageBox.askyesno("Overwrite", "File " + settings[index][j + 3] + " already exists, overwrite?")
+                    if answer:
                         try:
-                            os.remove(dirname + '/' + settings[index][4] + settings[index][5])
-                            shutil.copy(os.getcwd() + '/scripts/' + settings[index][5], dirname + '/' + settings[index][4])
-                            string = string + settings[index][0] + ', '
-                            string = string + settings[index][5] + ', '
-                            checkbox[i].config(foreground = 'blue')
-                            passed = 1
+                            os.remove(dirname + '/' + settings[index][j + 3] + settings[index][j + 4])
+                            shutil.copy(os.getcwd() + '/' + settings[index][j + 5] + '/' + settings[index][j + 4], dirname + '/' + settings[index][j + 3])
+                            if not settings[index][j + 6] != '' and passed == 1:    
+                                string = string + settings[index][0] + ', '
+                                checkbox[i].config(foreground = 'blue')
                         except Exception:
-                            dialMsg("Error", "Could not overwrite script " + settings[index][5])
-                            pass
+                            #Cannot copy file
+                            dialMsg("Error", "Could not overwrite file " + settings[index][j + 3])
+                            passed = 0
+                            break
+                j = j + 3
+                if passed == 0:
+                    checkbox[i].config(foreground = 'red')
+                else:
+                    checkbox[i].config(foreground = 'blue')
     if len(string) > 7:
         #Trimming trailing ', '
         string = string[:-2]
-        dialMsg("Added Sounds", string, 0)
-    
+        dialMsg("Added " + settings[index][3], string, 0)
+
+def checkAll():
+    global checkbox
+    for index in checkbox:
+        index.select()
+
+def uncheckAll():
+    global checkbox
+    for index in checkbox:
+        index.deselect()
 
 def removeFiles():
     global active, dirSet, settings, dirname, checkbox
@@ -262,29 +262,25 @@ def removeFiles():
         i+= 1
         if index == -1:
             continue
-        if active[index] != -1:
-            #If the file exists
-            if os.path.isfile(dirname + '/' + settings[index][1] + settings[index][2]):
-                try:
-                    os.remove(dirname + '/' + settings[index][1] + settings[index][2])
-                    if not settings[index][4] != '':
-                        string = string + settings[index][0] + ', '
-                        checkbox[i].config(foreground = 'red')
-                    passed = 1
-                #TODO: Display error to user
-                except Exception:
-                    pass
-        if passed and settings[index][4] != '':
-            #If the file exists
-            if os.path.isfile(dirname + '/' + settings[index][4] + settings[index][5]):
-                try:
-                    os.remove(dirname + '/' + settings[index][4] + settings[index][5])
-                    string = string + settings[index][0] + ', '
-                    string = string + settings[index][5] + ', '
-                    checkbox[i].config(foreground = 'red')
-                #TODO: Display error to user
-                except Exception:
-                    pass
+        j = -2
+        while settings[index][j + 3] != "":
+            passed = 1
+            if active[index] != -1:
+                #If the file exists
+                if os.path.isfile(dirname + '/' + settings[index][j + 3] + settings[index][j + 4]):
+                    try:
+                        os.remove(dirname + '/' + settings[index][j + 3] + settings[index][j + 4])
+                        if not settings[index][j + 6] != '' and passed == 1:    
+                                string = string + settings[index][0] + ', '
+                                checkbox[i].config(foreground = 'red')
+                    #TODO: Display error to user
+                    except Exception:
+                        passed = 0
+                        break
+                        pass
+            j = j + 3
+            if passed == 1:
+                checkbox[i].config(foreground = 'red')
     if len(string) > 9:
         #Trimming trailing ', '
         string = string[:-2]
@@ -296,22 +292,26 @@ top.title("Dota 2 File Installer")
 readFiles()
 #Default window size
 w = 393
-h = 165
+h = 250
 sw = top.winfo_screenwidth()
 sh = top.winfo_screenheight()
 i = 0
 #Increasing window height based on how many checkboxes there are
 while(h < sh - 100 and i < len(settings) / 2):
-    h+= 59
+    h+= 44
     i+= 1
 #centering the screen
 x = (sw - w) / 2
 y = (sh - h) / 2
 top.geometry("%dx%d+%d+%d" % (w, h, x, y))
+vert = 0
 #Adding buttons
-loc = Tkinter.Button(top, width=55, height="2", text="Locate Steam Directory", command = lambda: getSteamDir()).grid(row = 0, columnspan=2, column = 0)
-exit = Tkinter.Button(top, width=55, height="2", text="Exit", command = lambda: top.destroy()).grid(row = 1, columnspan=2, column = 0)
-lab = Tkinter.Label(top, width=55, height="2", text="Custom Sounds:").grid(row = 2, columnspan=2, column = 0)
+loc = Tkinter.Button(top, width=55, height="2", text="Locate Steam Directory", command = lambda: getSteamDir()).grid(row = vert, columnspan=2, column = 0)
+vert += 1
+exit = Tkinter.Button(top, width=55, height="2", text="Exit", command = lambda: top.destroy()).grid(row = vert, columnspan=2, column = 0)
+vert += 1
+lab = Tkinter.Label(top, width=55, height="2", text="Custom Sounds:").grid(row = vert, columnspan=2, column = 0)
+vert += 1
 vol = Scale(
     top,
     label = "Volume:",
@@ -327,17 +327,27 @@ vol.set(.5)
 vol.config(state = "disabled")
 i = 0
 for name in settings:
-    #active[i] = IntVar()
-    #active[i].set(-1)
     active[i] = -1
     checkbox[i] = Tkinter.Checkbutton(top, width=24, foreground=checkbox[i], height=2, text=name[0], state="disabled", onvalue=i, offvalue=-1, command =lambda i=i:playSound(i))
-    checkbox[i].grid(row = (3 + i/2), column = i%2)
+    checkbox[i].grid(row = (vert + i/2), column = i%2)
     i+= 1
-vol.grid(row= 4 + i/2, columnspan=2, column = 0)
+vert += 1
+vol.grid(row= vert + i/2, columnspan=2, column = 0)
+vert += 1
 add = Tkinter.Button(top, width=27, height="2", text="Add", state="disabled", command = lambda: addFiles())
-add.grid(row= 5 + i/2, columnspan=1, column = 0)
+add.grid(row = vert + i/2, columnspan=1, column = 0)
 rem = Tkinter.Button(top, width=27, height="2", text="Remove", state="disabled", command = lambda: removeFiles())
-rem.grid(row = 5 + i/2, columnspan=1, column = 1)
+rem.grid(row = vert + i/2, columnspan=1, column = 1)
+vert += 1
+allc = Tkinter.Button(top, width=27, height=2, text="Check All", state="disabled", command=lambda: checkAll())
+allc.grid(row = vert + i/2, columnspan = 1, column = 0)
+unall = Tkinter.Button(top, width=27, height=2, text="Uncheck All", state="disabled", command=lambda: uncheckAll())
+unall.grid(row = vert + i/2, columnspan = 1, column = 1)
+vert += 1
+snd = Tkinter.Button(top, width=55, heigh="2", text="Stop Sounds", state="disabled", command = lambda: stopSound())
+snd.grid(row = vert + i/2, columnspan=2, column = 0)
+vert += 1
+top.resizable(0,0)
 top.mainloop()
 raw_input()
 

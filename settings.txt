@@ -3,7 +3,14 @@ Radiant_Start_AirHorn,sound/ambient/,horn_radiant.wav,sound,,,,
 Sanic_Haste_Rune,sound/items/,rune_haste.wav,sound,,,,
 Hit_Marker_Gold,sound/ui/,coins.wav,sound,,,,
 Blink_Dagger_Dragon_Ball_Z,sound/weapons/hero/antimage/,blink_out.wav,sound,,,,
-Bloodlust_HOMM3,sound/weapons/hero/ogre_magi/,bloodlust_target_short.wav,sound,scripts/game_sounds_heroes/,game_sounds_ogre_magi.txt,script,
+Bloodlust_HOMM3,sound/weapons/hero/ogre_magi/,bloodlust_target_short.wav,sound,scripts/game_sounds_heroes/,game_sounds_ogre_magi.txt,scripts,
 Sand_King_Darude,sound/weapons/hero/sand_king/,sand_king_sandstorm_loop.wav,sound,,,,
-Wraith_King_Spooky_Ult,sound/weapons/hero/skeleton_king,sk_reincarnate.wav,sound,scripts/game_sounds_heroes/,game_sounds_skeletonking.txt,script
-Aegis_Reincarnate,sound/music/stingers,reincarnate.wav,sound,,,,
+Wraith_King_Spooky_Ult,sound/weapons/hero/skeleton_king/,sk_reincarnate.wav,sound,scripts/game_sounds_heroes/,game_sounds_skeletonking.txt,scripts
+Aegis_Reincarnate,sound/music/stingers/,reincarnate.wav,sound,,,,
+AoT_LC_Duel,sound/weapons/hero/legion_commander/,duel.wav,sound,sound/weapons/hero/legion_commander/,duel_fp.wav,sound,
+MAGNUS_NO_Skewer,sound/weapons/hero/magnataur/,skewer_cast.wav,sound
+Meepo_Poof,sound/weapons/hero/meepo/,poof_channel.wav,sound
+Morphling_Shotgun,sound/weapons/hero/morphling/,adaptive_strike.wav,sound,
+Naga_Song,sound/weapons/hero/naga_siren/,song_of_the_siren.wav,sound,
+Shadow_Fiend_Ult,sound/weapons/hero/nevermore/,requiem_cast.wav,sound,sound/weapons/hero/nevermore/,requiem_of_souls.wav,sound
+Im_Omni_Knight,sound/weapons/hero/omniknight/,purification.wav,sound
