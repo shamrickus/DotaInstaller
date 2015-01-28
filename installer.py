@@ -35,9 +35,7 @@ checkbox = []
 def enableButtons():
     global checkbox, vol, add, rem, dirSet, allc, unall
     if dirSet:
-        i = -1
-        for index in checkbox:
-            i += 1
+        for i, index in enumerate(checkbox):
             checkbox[i].config(state = "normal")
         vol.config(state = "normal")
         add.config(state = "normal")
@@ -50,9 +48,7 @@ def enableButtons():
 def disableButtons():
     global checkbox, vol, add, rem, dirSet, allc, unall
     if not dirSet:
-        i = -1
-        for index in checkbox:
-            i += 1
+        for i, index in enumerate(checkbox):
             checkbox[i].config(state = "disabled")
         vol.config(state = "disabled")
         add.config(state = "disabled")
@@ -135,14 +131,13 @@ def readFiles():
     except Exception:
         dialMsg("Opening file", "Cannot open settings.txt", 1)
     #Getting the size of the data for allocation
-    for row in file:
+    for i, row in enumerate(file):
         #Ignoring blank lines
         if row == "\n":
             continue
         for column in row:
             if i == 0:
                 j+= 1
-        i+= 1
     settings = [['' for x in range(j)] for x in range(i)]
     active = [-1 for x in range(i)]
     checkbox = ['black' for x in range(i)]
@@ -154,20 +149,14 @@ def readFiles():
     except Exception:
         dialMsg("Opening file", "Cannot open settings.txt", 1)
     #filling the settings array
-    for row in file:
-        for column in row:
+    for i, row in enumerate(file):
+        for j, column in enumerate(row):
             settings[i][j] = column
-            j+= 1
-        j = 0
-        i+= 1
-
 
 #Checking which files already exist and coloring the appropiate color
 def checkExisting():
     global settings, dirname, checkbox
-    i = -1
-    for files in settings:
-        i+= 1
+    for i, files in enumerate(settings):
         j = -2
         while files[j + 3] != '':
             passed = 1
@@ -187,9 +176,7 @@ def addFiles():
         dialMsg("No directory set", "Please select your steam directory", 0)
         return
     string = "Added: "
-    i = -1
-    for index in active:
-        i+= 1
+    for i, index in enumerate(active):
         j = -2
         if index == -1:
             continue
@@ -256,10 +243,8 @@ def removeFiles():
         dialMsg("No directory set", "Please select your steam directory", 0)
         return
     string = "Removed: "
-    i = -1
-    for index in active:
+    for i, index in enumerate(active):
         passed = 0
-        i+= 1
         if index == -1:
             continue
         j = -2
